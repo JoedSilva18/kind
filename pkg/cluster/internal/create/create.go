@@ -179,7 +179,7 @@ func alreadyExists(p providers.Provider, name string) error {
 		return err
 	}
 	if len(n) != 0 {
-		return errors.Errorf("node(s) already meu cluster teste exist for a cluster with the name %q", name)
+		return errors.Errorf("node(s) already exist for a cluster with the name %q", name)
 	}
 	return nil
 }
