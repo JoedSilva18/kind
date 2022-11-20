@@ -18,15 +18,15 @@ limitations under the License.
 package cluster
 
 import (
+	"container/list"
 	"fmt"
 	"github.com/spf13/cobra"
 	"os/exec"
-	"time"
-
 	"sigs.k8s.io/kind/pkg/cmd"
-	"sigs.k8s.io/kind/pkg/log"
-
 	"sigs.k8s.io/kind/pkg/internal/cli"
+	"sigs.k8s.io/kind/pkg/log"
+	"strings"
+	"time"
 )
 
 type flagpole struct {
@@ -56,14 +56,36 @@ func NewCommand(logger log.Logger, streams cmd.IOStreams) *cobra.Command {
 }
 
 func runE(logger log.Logger, streams cmd.IOStreams, flags *flagpole) error {
-	logger.Warn("Teste comando novo")
-	cmd, err := exec.Command("bash", "-c", "docker images").Output()
+	cmd, err := exec.Command("bash", "-c", "kubectl get nodes").Output()
 
 	if err != nil {
-		fmt.Println(err)
+		logger.Warn(fmt.Sprint(err))
 	}
 
-	logger.Warn(string(cmd))
+	kubectlOutputLines := strings.Split(string(cmd), "\n")
+	nodeNames := list.New()
+
+	for i := 1; i < len(kubectlOutputLines); i++ {
+		kubctlNode := strings.Split(kubectlOutputLines[i], " ")
+		kubctlImageName := kubctlNode[0]
+		nodeNames.PushBack(kubctlImageName)
+	}
+
+	for name := nodeNames.Front(); name != nil; name = name.Next() {
+		if fmt.Sprint(name.Value) != "" {
+			logger.V(0).Infof("Node name: " + fmt.Sprint(name.Value))
+
+			imageName := "docker exec " + fmt.Sprint(name.Value) + " crictl images"
+			cmd := exec.Command("bash", "-c", imageName)
+			output, err := cmd.CombinedOutput()
+
+			if err != nil {
+				logger.Warn(fmt.Sprint(err) + ": " + string(output))
+			} else {
+				logger.V(0).Infof(string(output))
+			}
+		}
+	}
 
 	return nil
 }
