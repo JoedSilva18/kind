@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package cluster implements the `stop` command
+// Package cluster implements the `start` command
 package cluster
 
 import (
@@ -37,14 +37,14 @@ type flagpole struct {
 	Kubeconfig string
 }
 
-// NewCommand to kill one or more running containers
+// NewCommand to start one or more containers
 func NewCommand(logger log.Logger, streams cmd.IOStreams) *cobra.Command {
 	flags := &flagpole{}
 	cmd := &cobra.Command{
 		Args:  cobra.NoArgs,
 		Use:   "container",
-		Short: "Stop one or more running containers",
-		Long:  "Stop one or more running containers",
+		Short: "Start one or more containers",
+		Long:  "Start one or more containers",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cli.OverrideDefaultName(cmd.Flags())
 			return runE(logger, streams, flags)
@@ -68,7 +68,7 @@ func NewCommand(logger log.Logger, streams cmd.IOStreams) *cobra.Command {
 
 func runE(logger log.Logger, streams cmd.IOStreams, flags *flagpole) error {
 
-	cmd, err := exec.Command("bash", "-c", "docker kill "+flags.Name).Output()
+	cmd, err := exec.Command("bash", "-c", "docker start "+ flags.Name).Output()
 
 	if err != nil {
 		logger.Warn(fmt.Sprint(err))
