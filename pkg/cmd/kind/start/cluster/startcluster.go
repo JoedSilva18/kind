@@ -68,13 +68,15 @@ func NewCommand(logger log.Logger, streams cmd.IOStreams) *cobra.Command {
 
 func runE(logger log.Logger, streams cmd.IOStreams, flags *flagpole) error {
 
-	cmd, err := exec.Command("bash", "-c", "docker start "+ flags.Name).Output()
+	cmd, err := exec.Command("bash", "-c", "docker start "+flags.Name).Output()
 
-	if err != nil {
+	if string(cmd) == "" {
+		logger.V(0).Infof("Container doesn't exist")
+	} else if err != nil {
 		logger.Warn(fmt.Sprint(err))
+	} else {
+		logger.V(0).Infof(string(cmd))
 	}
-
-	logger.V(0).Infof(string(cmd))
 
 	return nil
 }
